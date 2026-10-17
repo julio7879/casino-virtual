@@ -10,6 +10,7 @@ import ParticipantInput, {
 import { sounds } from "@/lib/audio";
 import { useWallet } from "@/lib/wallet-context";
 import { formatFichas } from "@/lib/format";
+import { getSavedTournamentNames } from "@/lib/tournament-roster";
 
 /* ─── Gladiator Types ─── */
 interface Gladiator extends PlayerParticipant {
@@ -120,6 +121,15 @@ export default function Coliseum3DGame() {
       color: PARTICIPANT_COLORS[idx % PARTICIPANT_COLORS.length],
     }));
   };
+
+  useEffect(() => {
+    const saved = getSavedTournamentNames();
+    if (saved && saved.length > 0) {
+      setParticipants(
+        rebind(saved.slice(0, 16).map((name, i) => ({ id: `c3d-${i}-${Date.now()}`, name })))
+      );
+    }
+  }, []);
 
   const handleAdd = (name: string) => {
     if (participants.length >= 16) return;

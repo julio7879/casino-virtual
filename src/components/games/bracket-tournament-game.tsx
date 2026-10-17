@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ParticipantInput, {
   PlayerParticipant,
   PARTICIPANT_COLORS,
@@ -9,6 +9,7 @@ import ParticipantInput, {
 import { sounds } from "@/lib/audio";
 import { formatFichas } from "@/lib/format";
 import { useWallet } from "@/lib/wallet-context";
+import { getSavedTournamentNames } from "@/lib/tournament-roster";
 
 interface Match {
   id: string;
@@ -55,6 +56,18 @@ export default function BracketTournamentGame() {
       color: PARTICIPANT_COLORS[idx % PARTICIPANT_COLORS.length],
     }));
   };
+
+  // Load saved tournament roster across games
+  useEffect(() => {
+    const saved = getSavedTournamentNames();
+    if (saved && saved.length > 0) {
+      setParticipants(
+        rebindParticipants(
+          saved.slice(0, 8).map((name, i) => ({ id: `b-${i}-${Date.now()}`, name }))
+        )
+      );
+    }
+  }, []);
 
   const handleAdd = (name: string) => {
     if (participants.length >= 8) {

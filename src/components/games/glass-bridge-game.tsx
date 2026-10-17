@@ -9,6 +9,7 @@ import ParticipantInput, {
 import { sounds } from "@/lib/audio";
 import { formatFichas } from "@/lib/format";
 import { useWallet } from "@/lib/wallet-context";
+import { getSavedTournamentNames } from "@/lib/tournament-roster";
 
 interface GlassStep {
   stepIndex: number;
@@ -52,6 +53,15 @@ export default function GlassBridgeGame() {
       eliminated: false,
     }));
   };
+
+  useEffect(() => {
+    const saved = getSavedTournamentNames();
+    if (saved && saved.length > 0) {
+      setParticipants(
+        rebindParticipants(saved.map((name, i) => ({ id: `gb-${i}-${Date.now()}`, name })))
+      );
+    }
+  }, []);
 
   const handleAdd = (name: string) => {
     setParticipants(rebindParticipants([...participants, { id: `gb-${Date.now()}`, name }]));

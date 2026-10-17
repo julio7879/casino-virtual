@@ -4,6 +4,11 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { sounds } from "@/lib/audio";
 import { formatFichas } from "@/lib/format";
 import { useWallet } from "@/lib/wallet-context";
+import {
+  getSavedTournamentNames,
+  saveTournamentNames,
+  resetSavedTournamentNames,
+} from "@/lib/tournament-roster";
 
 // Vibrant luxury palette for roulette slices
 const SLICE_COLORS = [
@@ -87,6 +92,18 @@ export default function CustomRouletteGame() {
     }));
   };
 
+  // Load saved tournament roster across games
+  useEffect(() => {
+    const saved = getSavedTournamentNames();
+    if (saved && saved.length > 0) {
+      setParticipants(
+        refreshParticipantColors(
+          saved.map((name, i) => ({ id: `p-${i}-${Date.now()}`, name }))
+        )
+      );
+    }
+  }, []);
+
   // Add single participant
   const handleAddSingle = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -102,6 +119,7 @@ export default function CustomRouletteGame() {
       { id: `p-${Date.now()}-${Math.random()}`, name: trimmed },
     ]);
     setParticipants(updated);
+    saveTournamentNames(updated.map((p) => p.name));
     setSingleInput("");
   };
 
@@ -122,6 +140,7 @@ export default function CustomRouletteGame() {
       name,
     }));
     setParticipants(refreshParticipantColors(newItems));
+    saveTournamentNames(unique);
     setBulkText("");
     setShowBulkModal(false);
     setEliminatedList([]);
@@ -133,6 +152,7 @@ export default function CustomRouletteGame() {
     sounds.playClick();
     const filtered = participants.filter((p) => p.id !== id);
     setParticipants(refreshParticipantColors(filtered));
+    saveTournamentNames(filtered.map((p) => p.name));
     if (betCandidateId === id) setBetCandidateId(null);
   };
 
@@ -142,15 +162,17 @@ export default function CustomRouletteGame() {
     sounds.playDeal();
     const shuffled = [...participants].sort(() => Math.random() - 0.5);
     setParticipants(refreshParticipantColors(shuffled));
+    saveTournamentNames(shuffled.map((p) => p.name));
   };
 
   // Reset to default sample
   const handleResetSample = () => {
     if (spinning) return;
     sounds.playDeal();
+    const def = resetSavedTournamentNames();
     setParticipants(
       refreshParticipantColors(
-        DEFAULT_NAMES.map((name, i) => ({
+        def.map((name, i) => ({
           id: `sample-${i}-${Date.now()}`,
           name,
         }))
@@ -728,11 +750,17 @@ export default function CustomRouletteGame() {
         <div className="lg:col-span-5 flex flex-col gap-6">
           {/* 1. Add Participants Box */}
           <div className="bg-[#0e121b] border border-neutral-800 rounded-3xl p-6 shadow-xl flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-black text-white flex items-center gap-2">
-                <span>👥</span>
-                <span>Participantes ({participants.length})</span>
-              </h3>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-black text-white flex items-center gap-2">
+                  <span>👥</span>
+                  <span>Participantes ({participants.length})</span>
+                </h3>
+                <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Sincronizado con torneos
+                </span>
+              </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowBulkModal(true)}

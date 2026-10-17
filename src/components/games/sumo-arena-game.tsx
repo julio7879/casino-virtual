@@ -9,6 +9,7 @@ import ParticipantInput, {
 import { sounds } from "@/lib/audio";
 import { formatFichas } from "@/lib/format";
 import { useWallet } from "@/lib/wallet-context";
+import { getSavedTournamentNames } from "@/lib/tournament-roster";
 
 interface SumoFighter {
   id: string;
@@ -65,6 +66,15 @@ export default function SumoArenaGame() {
       color: PARTICIPANT_COLORS[idx % PARTICIPANT_COLORS.length],
     }));
   };
+
+  useEffect(() => {
+    const saved = getSavedTournamentNames();
+    if (saved && saved.length > 0) {
+      setParticipants(
+        rebindParticipants(saved.slice(0, 12).map((name, i) => ({ id: `s-${i}-${Date.now()}`, name })))
+      );
+    }
+  }, []);
 
   const handleAdd = (name: string) => {
     if (participants.length >= 12) {

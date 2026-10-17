@@ -9,6 +9,7 @@ import ParticipantInput, {
 import { sounds } from "@/lib/audio";
 import { formatFichas } from "@/lib/format";
 import { useWallet } from "@/lib/wallet-context";
+import { getSavedTournamentNames } from "@/lib/tournament-roster";
 
 interface TileState {
   index: number;
@@ -49,6 +50,15 @@ export default function MinesRoyaleGame() {
       eliminated: false,
     }));
   };
+
+  useEffect(() => {
+    const saved = getSavedTournamentNames();
+    if (saved && saved.length > 0) {
+      setParticipants(
+        rebindParticipants(saved.map((name, i) => ({ id: `mn-${i}-${Date.now()}`, name })))
+      );
+    }
+  }, []);
 
   const handleAdd = (name: string) => {
     setParticipants(rebindParticipants([...participants, { id: `mn-${Date.now()}`, name }]));

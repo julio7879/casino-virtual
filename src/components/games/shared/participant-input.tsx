@@ -42,6 +42,12 @@ export const DEFAULT_COMPETITORS = [
   "Isabella P.",
 ];
 
+import {
+  getSavedTournamentNames,
+  saveTournamentNames,
+  resetSavedTournamentNames,
+} from "@/lib/tournament-roster";
+
 interface ParticipantInputProps {
   participants: PlayerParticipant[];
   onAddParticipant: (name: string) => void;
@@ -75,6 +81,14 @@ export default function ParticipantInput({
   const [singleInput, setSingleInput] = useState("");
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [bulkText, setBulkText] = useState("");
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showNotification = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => {
+      setToastMsg((cur) => (cur === msg ? null : cur));
+    }, 2800);
+  };
 
   const handleAdd = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -86,6 +100,9 @@ export default function ParticipantInput({
     }
     sounds.playChip();
     onAddParticipant(trimmed);
+    const updatedNames = [...participants.map((p) => p.name), trimmed];
+    saveTournamentNames(updatedNames);
+    showNotification("✓ Participante guardado para todos los torneos.");
     setSingleInput("");
   };
 
@@ -99,27 +116,93 @@ export default function ParticipantInput({
     const unique = Array.from(new Set(rawLines));
     sounds.playDeal();
     onImportBulk(unique);
+    saveTournamentNames(unique);
+    showNotification(`✓ ${unique.length} participantes guardados para todos los torneos.`);
     setBulkText("");
     setShowBulkModal(false);
   };
 
+  const handleSaveCurrentList = () => {
+    if (participants.length === 0) return;
+    sounds.playChip();
+    saveTournamentNames(participants.map((p) => p.name));
+    showNotification("✓ ¡Lista guardada para todos los juegos de torneos!");
+  };
+
+  const handleLoadSavedRoster = () => {
+    const saved = getSavedTournamentNames();
+    if (saved && saved.length > 0) {
+      sounds.playDeal();
+      onImportBulk(saved);
+      showNotification(`✓ Cargados ${saved.length} participantes guardados.`);
+    }
+  };
+
+  const handleReset = () => {
+    sounds.playDeal();
+    resetSavedTournamentNames();
+    onResetSample();
+    showNotification("Restablecido a los 8 nombres predeterminados.");
+  };
+
+  const handleRemove = (id: string) => {
+    const remaining = participants.filter((p) => p.id !== id);
+    onRemoveParticipant(id);
+    saveTournamentNames(remaining.map((p) => p.name));
+    showNotification("Participante eliminado y lista actualizada.");
+  };
+
   return (
     <div className="flex flex-col gap-5">
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="animate-in fade-in slide-in-from-top-2 duration-200 bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 px-4 py-2.5 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-lg shadow-emerald-950/40">
+          <span className="flex items-center gap-2">
+            <span>💾</span>
+            <span>{toastMsg}</span>
+          </span>
+          <button
+            onClick={() => setToastMsg(null)}
+            className="text-emerald-400/70 hover:text-emerald-200 text-xs ml-2"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Participant List Manager Box */}
       <div className="bg-[#0e121b] border border-neutral-800 rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-black text-white flex items-center gap-2">
-            <span>👥</span>
-            <span>Participantes ({participants.length})</span>
-          </h3>
-          <button
-            onClick={() => setShowBulkModal(true)}
-            disabled={disabled}
-            className="px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-bold transition flex items-center gap-1.5 disabled:opacity-40"
-          >
-            <span>📋</span>
-            <span>Pegar Lista</span>
-          </button>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-black text-white flex items-center gap-2">
+              <span>👥</span>
+              <span>Participantes ({participants.length})</span>
+            </h3>
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Guardado para torneos
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSaveCurrentList}
+              disabled={disabled || participants.length === 0}
+              className="px-3 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition flex items-center gap-1.5 disabled:opacity-40"
+              title="Guardar esta lista para que aparezca en todos los demás juegos de torneo"
+            >
+              <span>💾</span>
+              <span className="hidden sm:inline">Guardar Lista</span>
+            </button>
+            <button
+              onClick={() => setShowBulkModal(true)}
+              disabled={disabled}
+              className="px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-bold transition flex items-center gap-1.5 disabled:opacity-40"
+            >
+              <span>📋</span>
+              <span>Pegar Lista</span>
+            </button>
+          </div>
         </div>
 
         {/* Single Input Form */}
@@ -141,46 +224,58 @@ export default function ParticipantInput({
           </button>
         </form>
 
-        {/* Quick Actions (Shuffle, Sample, Clear) */}
-        <div className="flex items-center justify-between gap-2 pt-2 border-t border-neutral-800/80">
-          <button
-            onClick={() => {
-              sounds.playDeal();
-              onShuffle();
-            }}
-            disabled={disabled || participants.length < 2}
-            className="px-2.5 py-1.5 rounded-lg bg-[#141824] hover:bg-[#1f2538] border border-neutral-800 text-[11px] font-semibold text-neutral-300 transition flex items-center gap-1 disabled:opacity-40"
-            title="Mezclar orden aleatorio"
-          >
-            <span>🔀</span>
-            <span>Mezclar</span>
-          </button>
+        {/* Quick Actions (Shuffle, Sample, Clear, Load Saved) */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-neutral-800/80">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                sounds.playDeal();
+                onShuffle();
+                saveTournamentNames(participants.map((p) => p.name));
+              }}
+              disabled={disabled || participants.length < 2}
+              className="px-2.5 py-1.5 rounded-lg bg-[#141824] hover:bg-[#1f2538] border border-neutral-800 text-[11px] font-semibold text-neutral-300 transition flex items-center gap-1 disabled:opacity-40"
+              title="Mezclar orden aleatorio"
+            >
+              <span>🔀</span>
+              <span>Mezclar</span>
+            </button>
 
-          <button
-            onClick={() => {
-              sounds.playDeal();
-              onResetSample();
-            }}
-            disabled={disabled}
-            className="px-2.5 py-1.5 rounded-lg bg-[#141824] hover:bg-[#1f2538] border border-neutral-800 text-[11px] font-semibold text-amber-300 transition flex items-center gap-1 disabled:opacity-40"
-            title="Cargar participantes de prueba"
-          >
-            <span>⚡</span>
-            <span>Cargar 8 Nombres</span>
-          </button>
+            <button
+              onClick={handleLoadSavedRoster}
+              disabled={disabled}
+              className="px-2.5 py-1.5 rounded-lg bg-[#141824] hover:bg-[#1f2538] border border-neutral-800 text-[11px] font-semibold text-cyan-300 transition flex items-center gap-1 disabled:opacity-40"
+              title="Recargar la lista guardada de los torneos"
+            >
+              <span>⚡</span>
+              <span>Cargar Guardados</span>
+            </button>
+          </div>
 
-          <button
-            onClick={() => {
-              sounds.playClick();
-              onClearAll();
-            }}
-            disabled={disabled || participants.length === 0}
-            className="px-2.5 py-1.5 rounded-lg bg-[#141824] hover:bg-rose-950/40 border border-neutral-800 hover:border-rose-800 text-[11px] font-semibold text-rose-400 transition flex items-center gap-1 disabled:opacity-40"
-            title="Borrar todos los participantes"
-          >
-            <span>🗑️</span>
-            <span>Limpiar</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleReset}
+              disabled={disabled}
+              className="px-2.5 py-1.5 rounded-lg bg-[#141824] hover:bg-[#1f2538] border border-neutral-800 text-[11px] font-semibold text-amber-300 transition flex items-center gap-1 disabled:opacity-40"
+              title="Restablecer los 8 participantes de muestra por defecto"
+            >
+              <span>🔄</span>
+              <span>Predeterminados</span>
+            </button>
+
+            <button
+              onClick={() => {
+                sounds.playClick();
+                onClearAll();
+              }}
+              disabled={disabled || participants.length === 0}
+              className="px-2.5 py-1.5 rounded-lg bg-[#141824] hover:bg-rose-950/40 border border-neutral-800 hover:border-rose-800 text-[11px] font-semibold text-rose-400 transition flex items-center gap-1 disabled:opacity-40"
+              title="Borrar participantes actuales de este juego"
+            >
+              <span>🗑️</span>
+              <span>Limpiar</span>
+            </button>
+          </div>
         </div>
 
         {/* Active list */}
@@ -230,7 +325,7 @@ export default function ParticipantInput({
                   )}
 
                   <button
-                    onClick={() => onRemoveParticipant(p.id)}
+                    onClick={() => handleRemove(p.id)}
                     disabled={disabled}
                     className="text-neutral-500 hover:text-rose-400 p-1 text-xs transition"
                     title="Eliminar participante"
