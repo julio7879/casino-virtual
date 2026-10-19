@@ -10,6 +10,7 @@ import { sounds } from "@/lib/audio";
 import { formatFichas } from "@/lib/format";
 import { useWallet } from "@/lib/wallet-context";
 import { getSavedTournamentNames } from "@/lib/tournament-roster";
+import TournamentChallengeModal from "./shared/tournament-challenge-modal";
 
 interface HorseRunner {
   id: string;
@@ -41,6 +42,7 @@ export default function HorseRaceGame() {
   const [winner, setWinner] = useState<PlayerParticipant | null>(null);
   const [showPodiumModal, setShowPodiumModal] = useState(false);
   const [podium, setPodium] = useState<PlayerParticipant[]>([]);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
 
   const animFrameRef = useRef<number | null>(null);
   const runnersRef = useRef<HorseRunner[]>([]);
@@ -468,14 +470,35 @@ export default function HorseRaceGame() {
               </div>
             )}
 
-            <button
-              onClick={() => setShowPodiumModal(false)}
-              className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm transition shadow-lg shadow-emerald-500/25"
-            >
-              Cerrar y Nueva Carrera
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => setShowChallengeModal(true)}
+                className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 text-black font-extrabold text-sm transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
+              >
+                <span>📜</span>
+                <span>Resolver Reto de Inglés</span>
+              </button>
+              <button
+                onClick={() => setShowPodiumModal(false)}
+                className="px-5 py-3.5 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-500/40 font-bold text-sm transition"
+              >
+                Cerrar Podio
+              </button>
+            </div>
           </div>
         </div>
+      )}
+
+      {/* English Challenge Modal for the Horse Race Winner */}
+      {winner && (
+        <TournamentChallengeModal
+          isOpen={showChallengeModal}
+          participantName={winner.name}
+          participantColor={winner.color}
+          role="winner"
+          gameTitle="Derby Turf Royale"
+          onClose={() => setShowChallengeModal(false)}
+        />
       )}
     </div>
   );

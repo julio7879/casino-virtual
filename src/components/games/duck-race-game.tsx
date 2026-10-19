@@ -10,6 +10,7 @@ import { sounds } from "@/lib/audio";
 import { formatFichas } from "@/lib/format";
 import { useWallet } from "@/lib/wallet-context";
 import { getSavedTournamentNames } from "@/lib/tournament-roster";
+import TournamentChallengeModal from "./shared/tournament-challenge-modal";
 
 interface Duck {
   id: string;
@@ -47,6 +48,7 @@ export default function DuckRaceGame() {
   const [racing, setRacing] = useState(false);
   const [podium, setPodium] = useState<PlayerParticipant[]>([]);
   const [showPodiumModal, setShowPodiumModal] = useState(false);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
 
   const animFrameRef = useRef<number | null>(null);
   const ducksRef = useRef<Duck[]>([]);
@@ -511,14 +513,35 @@ export default function DuckRaceGame() {
               </div>
             )}
 
-            <button
-              onClick={() => setShowPodiumModal(false)}
-              className="w-full py-3.5 rounded-2xl bg-cyan-400 hover:bg-cyan-300 text-black font-bold text-sm transition shadow-lg shadow-cyan-500/25"
-            >
-              Cerrar y Nueva Carrera
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => setShowChallengeModal(true)}
+                className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 text-black font-extrabold text-sm transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
+              >
+                <span>📜</span>
+                <span>Resolver Reto de Inglés</span>
+              </button>
+              <button
+                onClick={() => setShowPodiumModal(false)}
+                className="px-5 py-3.5 rounded-2xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 border border-cyan-500/40 font-bold text-sm transition"
+              >
+                Cerrar Podio
+              </button>
+            </div>
           </div>
         </div>
+      )}
+
+      {/* English Challenge Modal for the Duck Race Winner */}
+      {podium.length > 0 && (
+        <TournamentChallengeModal
+          isOpen={showChallengeModal}
+          participantName={podium[0].name}
+          participantColor={podium[0].color}
+          role="winner"
+          gameTitle="Carrera de Patos"
+          onClose={() => setShowChallengeModal(false)}
+        />
       )}
     </div>
   );

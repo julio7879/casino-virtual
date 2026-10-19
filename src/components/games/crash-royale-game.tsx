@@ -10,6 +10,7 @@ import { sounds } from "@/lib/audio";
 import { formatFichas } from "@/lib/format";
 import { useWallet } from "@/lib/wallet-context";
 import { getSavedTournamentNames } from "@/lib/tournament-roster";
+import TournamentChallengeModal from "./shared/tournament-challenge-modal";
 
 interface SpaceRider {
   id: string;
@@ -40,6 +41,7 @@ export default function CrashRoyaleGame() {
   const [crashed, setCrashed] = useState(false);
   const [winner, setWinner] = useState<SpaceRider | null>(null);
   const [showResultModal, setShowResultModal] = useState(false);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
   const [riders, setRiders] = useState<SpaceRider[]>([]);
 
   const animFrameRef = useRef<number | null>(null);
@@ -448,14 +450,36 @@ export default function CrashRoyaleGame() {
               </div>
             )}
 
-            <button
-              onClick={() => setShowResultModal(false)}
-              className="w-full py-3.5 rounded-2xl bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold text-sm transition shadow-lg shadow-fuchsia-600/30"
-            >
-              Cerrar y Nueva Misión
-            </button>
+            <div className="flex flex-col gap-2.5">
+              {winner && (
+                <button
+                  onClick={() => setShowChallengeModal(true)}
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 text-black font-extrabold text-sm transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
+                >
+                  <span>📜</span>
+                  <span>Resolver Reto de Inglés</span>
+                </button>
+              )}
+              <button
+                onClick={() => setShowResultModal(false)}
+                className="w-full py-3 rounded-2xl bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold text-sm transition shadow-lg shadow-fuchsia-600/30"
+              >
+                Cerrar y Nueva Misión
+              </button>
+            </div>
           </div>
         </div>
+      )}
+
+      {winner && (
+        <TournamentChallengeModal
+          isOpen={showChallengeModal}
+          participantName={winner.name}
+          participantColor={winner.color}
+          role="winner"
+          gameTitle="Crash Royale Espacial"
+          onClose={() => setShowChallengeModal(false)}
+        />
       )}
     </div>
   );

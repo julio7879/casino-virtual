@@ -11,6 +11,7 @@ import { sounds } from "@/lib/audio";
 import { useWallet } from "@/lib/wallet-context";
 import { formatFichas } from "@/lib/format";
 import { getSavedTournamentNames } from "@/lib/tournament-roster";
+import TournamentChallengeModal from "@/components/games/shared/tournament-challenge-modal";
 
 /* ─── Gladiator Types ─── */
 interface Gladiator extends PlayerParticipant {
@@ -84,6 +85,7 @@ export default function Coliseum3DGame() {
   const [champion, setChampion] = useState<Gladiator | null>(null);
   const [standings, setStandings] = useState<Gladiator[]>([]);
   const [commentary, setCommentary] = useState<{ text: string; color: string; id: number }[]>([]);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
 
   // Three.js refs
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -685,11 +687,22 @@ export default function Coliseum3DGame() {
             g.hitFlashTime -= simDelta;
           }
         } else {
-          // Death animation: collapse to sand
+          // Death animation: collapse to sand, sink smoothly into ground, and remove from active battlefield
           if (g.deathTime < 1) {
             g.deathTime += simDelta * 2.2;
             g.mesh.rotation.x = THREE.MathUtils.lerp(0, Math.PI / 2, g.deathTime);
             g.mesh.position.y = THREE.MathUtils.lerp(0, 0.3, g.deathTime);
+          } else if (g.deathTime < 3.2) {
+            // Sinking and retiring from arena
+            g.deathTime += simDelta * 1.6;
+            g.mesh.position.y -= simDelta * 1.2;
+            g.mesh.scale.multiplyScalar(Math.max(0.01, 1 - simDelta * 0.8));
+          } else {
+            // Completely remove from scene to prevent field clutter
+            if (g.mesh.parent) {
+              g.mesh.parent.remove(g.mesh);
+            }
+            g.mesh.visible = false;
           }
         }
       });
@@ -1244,17 +1257,39 @@ export default function Coliseum3DGame() {
                 </span>
                 <h3 className="text-2xl font-black text-white mt-1 mb-2">{champion.name}</h3>
                 <p className="text-xs text-amber-200/70 mb-4">{champion.title}</p>
-                <button
-                  onClick={resetTournament}
-                  className="px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider text-black"
-                  style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)" }}
-                >
-                  ⚔️ Organizar Nuevo Torneo
-                </button>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <button
+                    onClick={() => setShowChallengeModal(true)}
+                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider text-black shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2"
+                    style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}
+                  >
+                    <span>📜</span>
+                    <span>Resolver Reto de Inglés</span>
+                  </button>
+                  <button
+                    onClick={resetTournament}
+                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider text-black"
+                    style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)" }}
+                  >
+                    ⚔️ Organizar Nuevo Torneo
+                  </button>
+                </div>
               </div>
             )}
           </div>
         </div>
+      )}
+
+      {/* English Challenge Modal for the Champion */}
+      {champion && (
+        <TournamentChallengeModal
+          isOpen={showChallengeModal}
+          participantName={champion.name}
+          participantColor={champion.color}
+          role="winner"
+          gameTitle="Coliseo 3D Royale"
+          onClose={() => setShowChallengeModal(false)}
+        />
       )}
     </div>
   );

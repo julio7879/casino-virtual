@@ -9,6 +9,7 @@ import {
   saveTournamentNames,
   resetSavedTournamentNames,
 } from "@/lib/tournament-roster";
+import TournamentChallengeModal from "./shared/tournament-challenge-modal";
 
 // Vibrant luxury palette for roulette slices
 const SLICE_COLORS = [
@@ -75,6 +76,7 @@ export default function CustomRouletteGame() {
   const [spinning, setSpinning] = useState(false);
   const [winner, setWinner] = useState<Participant | null>(null);
   const [showWinnerModal, setShowWinnerModal] = useState(false);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
   const [spinSpeed, setSpinSpeed] = useState<"fast" | "normal" | "slow">("normal");
 
   // Physics animation references
@@ -1043,10 +1045,18 @@ export default function CustomRouletteGame() {
             )}
 
             <div className="flex flex-col gap-2.5">
+              <button
+                onClick={() => setShowChallengeModal(true)}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 text-black font-extrabold text-sm transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
+              >
+                <span>📜</span>
+                <span>Resolver Reto de Inglés</span>
+              </button>
+
               {gameMode === "elimination" ? (
                 <button
                   onClick={handleRemoveWinnerAfterSpin}
-                  className="w-full py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm transition shadow-lg shadow-rose-600/30"
+                  className="w-full py-3 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm transition shadow-lg shadow-rose-600/30"
                 >
                   Continuar Batalla (Remover y seguir)
                 </button>
@@ -1054,13 +1064,13 @@ export default function CustomRouletteGame() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setShowWinnerModal(false)}
-                    className="flex-1 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs transition"
+                    className="flex-1 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs transition"
                   >
                     Mantener en lista
                   </button>
                   <button
                     onClick={handleRemoveWinnerAfterSpin}
-                    className="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs transition"
+                    className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs transition"
                   >
                     Eliminar ganador
                   </button>
@@ -1076,6 +1086,18 @@ export default function CustomRouletteGame() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* English Challenge Modal */}
+      {winner && (
+        <TournamentChallengeModal
+          isOpen={showChallengeModal}
+          participantName={winner.name}
+          participantColor={winner.color}
+          role={gameMode === "elimination" ? "loser" : "winner"}
+          gameTitle="Ruleta de Nombres & Battle Royale"
+          onClose={() => setShowChallengeModal(false)}
+        />
       )}
     </div>
   );

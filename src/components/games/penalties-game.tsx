@@ -10,6 +10,7 @@ import { sounds } from "@/lib/audio";
 import { formatFichas } from "@/lib/format";
 import { useWallet } from "@/lib/wallet-context";
 import { getSavedTournamentNames } from "@/lib/tournament-roster";
+import TournamentChallengeModal from "./shared/tournament-challenge-modal";
 
 interface Striker {
   id: string;
@@ -43,6 +44,7 @@ export default function PenaltiesGame() {
   const [lastShotText, setLastShotText] = useState("Configura los tiradores y pulsa Iniciar Tanda.");
   const [champion, setChampion] = useState<Striker | null>(null);
   const [showResultModal, setShowResultModal] = useState(false);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
 
   // Animation states for the canvas
   const [shooting, setShooting] = useState(false);
@@ -558,14 +560,34 @@ export default function PenaltiesGame() {
               </div>
             )}
 
-            <button
-              onClick={() => setShowResultModal(false)}
-              className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm transition shadow-lg shadow-emerald-500/25"
-            >
-              Cerrar y Nueva Tanda
-            </button>
+            <div className="flex flex-col gap-2.5">
+              <button
+                onClick={() => setShowChallengeModal(true)}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 text-black font-extrabold text-sm transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
+              >
+                <span>📜</span>
+                <span>Resolver Reto de Inglés (Campeón)</span>
+              </button>
+              <button
+                onClick={() => setShowResultModal(false)}
+                className="w-full py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm transition shadow-lg shadow-emerald-500/25"
+              >
+                Cerrar y Nueva Tanda
+              </button>
+            </div>
           </div>
         </div>
+      )}
+
+      {champion && (
+        <TournamentChallengeModal
+          isOpen={showChallengeModal}
+          participantName={champion.name}
+          participantColor={champion.color}
+          role="winner"
+          gameTitle="Penaltis Royale"
+          onClose={() => setShowChallengeModal(false)}
+        />
       )}
     </div>
   );

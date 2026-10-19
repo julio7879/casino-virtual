@@ -10,6 +10,7 @@ import { sounds } from "@/lib/audio";
 import { formatFichas } from "@/lib/format";
 import { useWallet } from "@/lib/wallet-context";
 import { getSavedTournamentNames } from "@/lib/tournament-roster";
+import TournamentChallengeModal from "./shared/tournament-challenge-modal";
 
 interface SumoFighter {
   id: string;
@@ -53,6 +54,7 @@ export default function SumoArenaGame() {
   const [battling, setBattling] = useState(false);
   const [champion, setChampion] = useState<PlayerParticipant | null>(null);
   const [showWinnerModal, setShowWinnerModal] = useState(false);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
   const [eliminatedList, setEliminatedList] = useState<string[]>([]);
 
   const animFrameRef = useRef<number | null>(null);
@@ -623,14 +625,34 @@ export default function SumoArenaGame() {
               </div>
             )}
 
-            <button
-              onClick={() => setShowWinnerModal(false)}
-              className="w-full py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm transition shadow-lg shadow-rose-600/30"
-            >
-              Cerrar y Nueva Batalla
-            </button>
+            <div className="flex flex-col gap-2.5">
+              <button
+                onClick={() => setShowChallengeModal(true)}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 text-black font-extrabold text-sm transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
+              >
+                <span>📜</span>
+                <span>Resolver Reto de Inglés</span>
+              </button>
+              <button
+                onClick={() => setShowWinnerModal(false)}
+                className="w-full py-3 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm transition shadow-lg shadow-rose-600/30"
+              >
+                Cerrar y Nueva Batalla
+              </button>
+            </div>
           </div>
         </div>
+      )}
+
+      {champion && (
+        <TournamentChallengeModal
+          isOpen={showChallengeModal}
+          participantName={champion.name}
+          participantColor={champion.color}
+          role="winner"
+          gameTitle="Sumo Arena Royale"
+          onClose={() => setShowChallengeModal(false)}
+        />
       )}
     </div>
   );

@@ -10,6 +10,7 @@ import { sounds } from "@/lib/audio";
 import { formatFichas } from "@/lib/format";
 import { useWallet } from "@/lib/wallet-context";
 import { getSavedTournamentNames } from "@/lib/tournament-roster";
+import TournamentChallengeModal from "./shared/tournament-challenge-modal";
 
 interface Match {
   id: string;
@@ -49,6 +50,7 @@ export default function BracketTournamentGame() {
 
   const [champion, setChampion] = useState<PlayerParticipant | null>(null);
   const [showWinnerModal, setShowWinnerModal] = useState<boolean>(false);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
 
   const rebindParticipants = (list: { id: string; name: string }[]): PlayerParticipant[] => {
     return list.slice(0, 8).map((item, idx) => ({
@@ -446,17 +448,38 @@ export default function BracketTournamentGame() {
               </div>
             )}
 
-            <button
-              onClick={() => {
-                setShowWinnerModal(false);
-                setTournamentStarted(false);
-              }}
-              className="w-full py-3.5 rounded-2xl bg-indigo-500 hover:bg-indigo-400 text-black font-bold text-sm transition shadow-lg shadow-indigo-500/25"
-            >
-              Cerrar y Nuevo Cuadro
-            </button>
+            <div className="flex flex-col gap-2.5">
+              <button
+                onClick={() => setShowChallengeModal(true)}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 text-black font-extrabold text-sm transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
+              >
+                <span>📜</span>
+                <span>Resolver Reto de Inglés (Campeón)</span>
+              </button>
+              <button
+                onClick={() => {
+                  setShowWinnerModal(false);
+                  setTournamentStarted(false);
+                }}
+                className="w-full py-3 rounded-2xl bg-indigo-500 hover:bg-indigo-400 text-black font-bold text-sm transition shadow-lg shadow-indigo-500/25"
+              >
+                Cerrar y Nuevo Cuadro
+              </button>
+            </div>
           </div>
         </div>
+      )}
+
+      {/* English Challenge Modal for Bracket Champion */}
+      {champion && (
+        <TournamentChallengeModal
+          isOpen={showChallengeModal}
+          participantName={champion.name}
+          participantColor={champion.color}
+          role="winner"
+          gameTitle="Torneo de Llaves / Bracket"
+          onClose={() => setShowChallengeModal(false)}
+        />
       )}
     </div>
   );

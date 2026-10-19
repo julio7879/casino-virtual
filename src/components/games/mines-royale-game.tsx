@@ -10,6 +10,7 @@ import { sounds } from "@/lib/audio";
 import { formatFichas } from "@/lib/format";
 import { useWallet } from "@/lib/wallet-context";
 import { getSavedTournamentNames } from "@/lib/tournament-roster";
+import TournamentChallengeModal from "./shared/tournament-challenge-modal";
 
 interface TileState {
   index: number;
@@ -41,6 +42,7 @@ export default function MinesRoyaleGame() {
   const [lastEvent, setLastEvent] = useState<string>("Configura los jugadores y pulsa Iniciar.");
   const [champion, setChampion] = useState<PlayerParticipant | null>(null);
   const [showResultModal, setShowResultModal] = useState(false);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
 
   const rebindParticipants = (list: { id: string; name: string }[]): PlayerParticipant[] => {
     return list.map((item, idx) => ({
@@ -373,14 +375,34 @@ export default function MinesRoyaleGame() {
               </div>
             )}
 
-            <button
-              onClick={() => setShowResultModal(false)}
-              className="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm transition shadow-lg shadow-amber-500/25"
-            >
-              Cerrar y Nueva Partida
-            </button>
+            <div className="flex flex-col gap-2.5">
+              <button
+                onClick={() => setShowChallengeModal(true)}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 text-black font-extrabold text-sm transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
+              >
+                <span>📜</span>
+                <span>Resolver Reto de Inglés</span>
+              </button>
+              <button
+                onClick={() => setShowResultModal(false)}
+                className="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm transition shadow-lg shadow-amber-500/25"
+              >
+                Cerrar y Nueva Partida
+              </button>
+            </div>
           </div>
         </div>
+      )}
+
+      {champion && (
+        <TournamentChallengeModal
+          isOpen={showChallengeModal}
+          participantName={champion.name}
+          participantColor={champion.color}
+          role="winner"
+          gameTitle="Mina Royale Supervivencia"
+          onClose={() => setShowChallengeModal(false)}
+        />
       )}
     </div>
   );

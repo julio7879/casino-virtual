@@ -10,6 +10,7 @@ import { sounds } from "@/lib/audio";
 import { formatFichas } from "@/lib/format";
 import { useWallet } from "@/lib/wallet-context";
 import { getSavedTournamentNames } from "@/lib/tournament-roster";
+import TournamentChallengeModal from "./shared/tournament-challenge-modal";
 
 interface GlassStep {
   stepIndex: number;
@@ -45,6 +46,7 @@ export default function GlassBridgeGame() {
   const [lastEventText, setLastEventText] = useState<string>("Configura la fila de jugadores e inicia el desafío.");
   const [showResultModal, setShowResultModal] = useState<boolean>(false);
   const [champion, setChampion] = useState<PlayerParticipant | null>(null);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
 
   const rebindParticipants = (list: { id: string; name: string }[]): PlayerParticipant[] => {
     return list.map((item, idx) => ({
@@ -423,14 +425,36 @@ export default function GlassBridgeGame() {
               </div>
             )}
 
-            <button
-              onClick={() => setShowResultModal(false)}
-              className="w-full py-3.5 rounded-2xl bg-pink-500 hover:bg-pink-400 text-black font-bold text-sm transition shadow-lg shadow-pink-500/25"
-            >
-              Cerrar y Nuevo Desafío
-            </button>
+            <div className="flex flex-col gap-2.5">
+              {champion && (
+                <button
+                  onClick={() => setShowChallengeModal(true)}
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 text-black font-extrabold text-sm transition shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
+                >
+                  <span>📜</span>
+                  <span>Resolver Reto de Inglés (Superviviente)</span>
+                </button>
+              )}
+              <button
+                onClick={() => setShowResultModal(false)}
+                className="w-full py-3 rounded-2xl bg-pink-500 hover:bg-pink-400 text-black font-bold text-sm transition shadow-lg shadow-pink-500/25"
+              >
+                Cerrar y Nuevo Desafío
+              </button>
+            </div>
           </div>
         </div>
+      )}
+
+      {champion && (
+        <TournamentChallengeModal
+          isOpen={showChallengeModal}
+          participantName={champion.name}
+          participantColor={champion.color}
+          role="winner"
+          gameTitle="Puente de Cristal"
+          onClose={() => setShowChallengeModal(false)}
+        />
       )}
     </div>
   );
